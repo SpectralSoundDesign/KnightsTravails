@@ -1,79 +1,80 @@
 require_relative 'knight.rb'
 
 class GameBoard
-  attr_accessor :nodes
+  attr_accessor :board
 
-  def initialize(start_pos, end_pos)
-    @nodes = []
-    @start_node = Node.new(start_pos[0], start_pos[1])
-    @end_pos = end_pos
-    @visited = []
-  end
-
-  def create_nodes
-    (1..8).each do |i|
-      (1..8).each do |j|
-        square = Node.new(j, i)
-        @nodes.push(square)
+  def initialize
+    @board = []
+    a = *(0..7)
+    a.each do |i|
+      a.each do |j|
+        board.push(Node.new(i, j))
       end
     end
   end
 
-  def find_neighbors(current_node)
-    n = current_node
-    new_pos = [n.current_pos[0] + 1, n.current_pos[1] + 2]
-    if ((new_pos[0] > 0 && new_pos[1] > 0) && (new_pos[0] < 9 && new_pos[1] < 9))
-      n.neighbors.push(find_node(new_pos))
-    end
-    new_pos = [n.current_pos[0] + 2, n.current_pos[1] + 1]
-    if ((new_pos[0] > 0 && new_pos[1] > 0) && (new_pos[0] < 9 && new_pos[1] < 9))
-      n.neighbors.push(find_node(new_pos))
-    end
-    new_pos = [n.current_pos[0] - 1, n.current_pos[1] + 2]
-    if ((new_pos[0] > 0 && new_pos[1] > 0) && (new_pos[0] < 9 && new_pos[1] < 9))
-      n.neighbors.push(find_node(new_pos))
-    end
-    new_pos = [n.current_pos[0] - 2, n.current_pos[1] + 1]
-    if ((new_pos[0] > 0 && new_pos[1] > 0) && (new_pos[0] < 9 && new_pos[1] < 9))
-      n.neighbors.push(find_node(new_pos))
-    end
-    new_pos = [n.current_pos[0] + 1, n.current_pos[1] - 2]
-    if ((new_pos[0] > 0 && new_pos[1] > 0) && (new_pos[0] < 9 && new_pos[1] < 9))
-      n.neighbors.push(find_node(new_pos))
-    end
-    new_pos = [n.current_pos[0] + 2, n.current_pos[1] - 1]
-    if ((new_pos[0] > 0 && new_pos[1] > 0) && (new_pos[0] < 9 && new_pos[1] < 9))
-      n.neighbors.push(find_node(new_pos))
-    end
-    new_pos = [n.current_pos[0] - 1, n.current_pos[1] - 2]
-    if ((new_pos[0] > 0 && new_pos[1] > 0) && (new_pos[0] < 9 && new_pos[1] < 9))
-      n.neighbors.push(find_node(new_pos))
-    end
-    new_pos = [n.current_pos[0] - 2, n.current_pos[1] - 1]
-    if ((new_pos[0] > 0 && new_pos[1] > 0) && (new_pos[0] < 9 && new_pos[1] < 9))
-      n.neighbors.push(find_node(new_pos))
+  def find_node(data)
+    i, j = data
+    id = i * 8 + j
+    board[id]
+  end
+
+  def on_board?(data)
+    i, j = data
+
+    if i > 7 || j > 7 || i < 0 || j < 0
+      false
+    else
+      true
     end
   end
 
-  def create_tree(current_node = @start_node, destination = @end_pos)
+  def find_neighbors(node)
+    x, y = node.current_pos
+
+    n0 = find_node([x + 1, y + 2]) if on_board?([x + 1, y + 2])
+    n1 = find_node([x + 2, y + 1]) if on_board?([x + 2, y + 1])
+    n2 = find_node([x - 1, y + 2]) if on_board?([x - 1, y + 2])
+    n3 = find_node([x - 2, y + 1]) if on_board?([x - 2, y + 1])
+
+    n4 = find_node([x + 1, y - 2]) if on_board?([x + 1, y - 2])
+    n5 = find_node([x + 2, y - 1]) if on_board?([x + 2, y - 1])
+    n6 = find_node([x - 1, y - 2]) if on_board?([x - 1, y - 2])
+    n7 = find_node([x - 2, y - 1]) if on_board?([x - 2, y - 1])
+
+    node.neighbors = [n0, n1, n2, n3, n4, n5, n6, n7] - [nil]
+  end
+
+  def move_knight(start_pos, end_pos)
+    start_node = find_node(start_pos)
+    find_neighbors(start_node) 
+    destination_node = find_node(end_pos)
+
+    p start_node.current_pos
     
-  end
+    queue = []
 
-  def find_node(pos)
-    @nodes.each do |n|
-      if n.current_pos == pos
-        return n
+    start_node.visited = true
+    queue.push(start_node)
+
+    while queue.length > 0
+      current_node = queue.shift
+
+      current_node.neighbors.each do |n|
+        if !n.visited
+          p n.current_pos
+          n.visited = true
+          find_neighbors(n)
+          queue.push(n)
+
+          n.prev = current_node
+
+          if n == destination_node
+            queue.clear
+            break
+          end
+        end
       end
-    end
-  end
-
-  def print_graph
-    @nodes.each_with_index do |v, i|
-      if i % 8 == 0
-        p "\n"
-      end
-
-      print " #{v.current_pos} ||"
     end
   end
 end

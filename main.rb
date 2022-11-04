@@ -1,7 +1,5 @@
 require_relative './lib/game_board.rb'
 
-board = GameBoard.new([4, 5], [3, 2])
+board = GameBoard.new
 
-board.create_nodes
-#board.print_graph
-board.create_tree
+board.move_knight([1, 1], [3, 2])
